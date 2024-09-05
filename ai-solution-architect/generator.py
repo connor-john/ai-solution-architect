@@ -1,3 +1,5 @@
+# llm_diagram_generator/diagram_generator.py
+
 import json
 import os
 from openai import OpenAI
@@ -9,126 +11,149 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 class DiagramGenerator:
-    def __init__(self):
-        self.components = []
-        self.connections = []
-
     def generate_diagram(self, description):
-        print("Generating diagram for description:", description)
-
-        example_input = """
-        This is a web application that uses a React frontend, a Node.js backend, and a MongoDB database. The frontend communicates with the backend via RESTful APIs. The backend processes requests, interacts with the database, and returns responses to the frontend. The application is hosted on AWS using EC2 instances for the frontend and backend, and uses MongoDB Atlas for the database.
-        """
-
-        example_output = {
-            "components": [
-                {
-                    "name": "React Frontend",
-                    "type": "Frontend Framework",
-                    "logo": "react_logo.png",
-                },
-                {
-                    "name": "Node.js Backend",
-                    "type": "Backend Server",
-                    "logo": "nodejs_logo.png",
-                },
-                {"name": "MongoDB", "type": "Database", "logo": "mongodb_logo.png"},
-                {
-                    "name": "AWS EC2 (Frontend)",
-                    "type": "Cloud Instance",
-                    "logo": "aws_ec2_logo.png",
-                },
-                {
-                    "name": "AWS EC2 (Backend)",
-                    "type": "Cloud Instance",
-                    "logo": "aws_ec2_logo.png",
-                },
-                {
-                    "name": "MongoDB Atlas",
-                    "type": "Cloud Database Service",
-                    "logo": "mongodb_atlas_logo.png",
-                },
-            ],
-            "connections": [
-                {
-                    "from": "React Frontend",
-                    "to": "Node.js Backend",
-                    "label": "RESTful API",
-                },
-                {
-                    "from": "Node.js Backend",
-                    "to": "MongoDB",
-                    "label": "Database Queries",
-                },
-                {
-                    "from": "AWS EC2 (Frontend)",
-                    "to": "React Frontend",
-                    "label": "Hosts",
-                },
-                {
-                    "from": "AWS EC2 (Backend)",
-                    "to": "Node.js Backend",
-                    "label": "Hosts",
-                },
-                {"from": "MongoDB Atlas", "to": "MongoDB", "label": "Hosts"},
-            ],
-        }
-
         prompt = f"""
-        You are a technical diagram generator. Your task is to interpret a description of a system and generate a JSON representation of the diagram components and connections.
+        Generate a JSON representation of a system architecture based on the following description:
 
-        Here's an example input:
-        {example_input}
-
-        And here's the corresponding output:
-        {json.dumps(example_output, indent=2)}
-
-        Now, generate a similar JSON representation for the following description:
         {description}
 
-        The JSON should include 'components' (list of objects with 'name', 'type', and 'logo' properties) and 'connections' (list of objects with 'from', 'to', and 'label' properties).
-        Be sure to include all relevant components and their connections, and use appropriate logos for well-known services or technologies.
+        The JSON should strictly adhere to the following structure and guidelines:
+
+        1. Groups: Categorize components into logical groups (e.g., cloud providers, data sources, user types).
+        2. Components: List all system components with their details.
+        3. Connections: Describe how components are connected or interact.
+
+        Use the following schema:
+
+        {{
+            "groups": [
+                {{
+                    "name": "group_name",
+                    "type": "group_type" // e.g., "cloud_provider", "data_source", "user_group", etc.
+                }}
+            ],
+            "components": [
+                {{
+                    "name": "component_name",
+                    "type": "component_type",
+                    "group": "group_name",
+                    "image": "image_filename.png"
+                }}
+            ],
+            "connections": [
+                {{
+                    "from": "component_name1",
+                    "to": "component_name2",
+                    "label": "connection_description"
+                }}
+            ]
+        }}
+
+        Image Naming Guidelines:
+        1. For specific cloud services, use "[provider]-[service].png" (e.g., "aws-lambda.png", "azure-sql-database.png").
+        2. For generic services, use descriptive names (e.g., "database.png", "api.png", "server.png").
+        3. For user roles, use "user.png" or specific roles like "admin.png", "analyst.png".
+        4. If unsure, use a generic term related to the component type.
+
+        Example:
+        Given the description: "A web application using AWS. It has a React frontend hosted on S3, an API Gateway connecting to Lambda functions, and a DynamoDB database. CloudFront is used as a CDN."
+
+        The JSON output should be:
+
+        {{
+            "groups": [
+                {{
+                    "name": "AWS",
+                    "type": "cloud_provider"
+                }},
+                {{
+                    "name": "Frontend",
+                    "type": "client_side"
+                }}
+            ],
+            "components": [
+                {{
+                    "name": "React App",
+                    "type": "frontend_framework",
+                    "group": "Frontend",
+                    "image": "react.png"
+                }},
+                {{
+                    "name": "S3 Bucket",
+                    "type": "object_storage",
+                    "group": "AWS",
+                    "image": "aws-s3.png"
+                }},
+                {{
+                    "name": "CloudFront",
+                    "type": "cdn",
+                    "group": "AWS",
+                    "image": "aws-cloudfront.png"
+                }},
+                {{
+                    "name": "API Gateway",
+                    "type": "api_management",
+                    "group": "AWS",
+                    "image": "aws-api-gateway.png"
+                }},
+                {{
+                    "name": "Lambda",
+                    "type": "serverless_function",
+                    "group": "AWS",
+                    "image": "aws-lambda.png"
+                }},
+                {{
+                    "name": "DynamoDB",
+                    "type": "nosql_database",
+                    "group": "AWS",
+                    "image": "aws-dynamodb.png"
+                }}
+            ],
+            "connections": [
+                {{
+                    "from": "React App",
+                    "to": "CloudFront",
+                    "label": "user access"
+                }},
+                {{
+                    "from": "CloudFront",
+                    "to": "S3 Bucket",
+                    "label": "origin"
+                }},
+                {{
+                    "from": "React App",
+                    "to": "API Gateway",
+                    "label": "API calls"
+                }},
+                {{
+                    "from": "API Gateway",
+                    "to": "Lambda",
+                    "label": "triggers"
+                }},
+                {{
+                    "from": "Lambda",
+                    "to": "DynamoDB",
+                    "label": "read/write"
+                }}
+            ]
+        }}
+
+        Ensure your output is a valid JSON object containing only the requested structure.
+        Do not include any explanatory text or markdown formatting.
         """
 
-        print("Sending request to OpenAI API...")
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a technical diagram generator."},
+                {
+                    "role": "system",
+                    "content": "You are a technical diagram generator that outputs only valid JSON.",
+                },
                 {"role": "user", "content": prompt},
             ],
         )
-        print("Received response from OpenAI API.")
 
-        print("Raw API response:", response)
-        print("Response content:", response.choices[0].message.content)
+        return response.choices[0].message.content
 
-        try:
-            diagram_data = json.loads(response.choices[0].message.content)
-            print("Parsed JSON data:", json.dumps(diagram_data, indent=2))
-        except json.JSONDecodeError as e:
-            print(f"JSON parsing error: {e}")
-            print("Failed to parse the following content:")
-            print(response.choices[0].message.content)
-            raise
 
-        self.components = diagram_data["components"]
-        self.connections = diagram_data["connections"]
-
-        return self.to_custom_syntax()
-
-    def to_custom_syntax(self):
-        syntax = "DIAGRAM:\n"
-
-        for component in self.components:
-            syntax += f"COMPONENT {component['name']}:\n"
-            syntax += f"  TYPE: {component['type']}\n"
-            syntax += f"  LOGO: {component['logo']}\n"
-
-        syntax += "\nCONNECTIONS:\n"
-        for connection in self.connections:
-            syntax += (
-                f"{connection['from']} -> {connection['to']}: {connection['label']}\n"
-            )
-
-        return syntax
+# The main.py file remains the same as in the previous version
