@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "ai-solution-architect"
+version = "0.1.0"
+description = ""
+authors = ["Connor (Cub) <connor@cubdigital.co.nz>"]
+readme = "README.md"
+packages = [{ include = "ai-solution-architect" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+openai = "^1.43.0"
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+generate = "ai-solution-architect.main:main"
