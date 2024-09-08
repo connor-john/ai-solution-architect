@@ -1,5 +1,9 @@
 LLM -> syntax -> interpreter -> visualiser
 
+WIP
+
+![image](./test-image.png)
+
 TODO:
 
 - [x] Add basic syntax generator
