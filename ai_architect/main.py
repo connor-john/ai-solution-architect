@@ -35,32 +35,44 @@ def main():
     generator = DiagramGenerator()
 
     description = """
-   This is a simple data warehouse solution for a retail company using Microsoft Azure services. The system collects data from three main sources:
+   This is an AWS-based data analytics pipeline for a retail company. The system integrates data from multiple sources, processes it, and stores it in a data warehouse for analysis. Here are the key components and their interactions:
 
-1. Point of Sale (POS) System: Generates daily sales data in CSV format
-2. Online Store: Uses a SQL Server database for order information
-3. Customer Relationship Management (CRM) System: Provides customer data via an API
+Data Sources:
+1. Internal PostgreSQL database containing customer information
+2. External API providing real-time inventory data from suppliers
+3. Daily sales reports in CSV format stored in an S3 bucket
 
-The data warehouse solution uses the following components:
+AWS Components:
+1. AWS Step Functions: Orchestrates the entire data pipeline
+2. AWS Lambda functions: 
+   - Lambda A: Extracts data from the PostgreSQL database
+   - Lambda B: Calls the external API and processes the response
+   - Lambda C: Processes CSV files from S3
+   - Lambda D: Transforms and combines data from all sources
+   - Lambda E: Loads processed data into Redshift
+3. Amazon S3: Stores raw CSV files and serves as a staging area for processed data
+4. Amazon Redshift: Acts as the central data warehouse
+5. Amazon CloudWatch: Monitors the pipeline and triggers the Step Functions workflow daily
 
-1. Azure Data Factory: Orchestrates the data extraction and loading processes
-2. Azure Blob Storage: Acts as a staging area for raw data
-3. Azure Synapse Analytics (formerly SQL Data Warehouse): Serves as the main data warehouse
-4. Azure Data Lake Analytics: Performs data transformations
-5. Power BI: Connects to Synapse Analytics for reporting and dashboards
+Data Flow:
+1. CloudWatch triggers the Step Functions workflow daily at 1 AM
+2. Step Functions invokes Lambda A, B, and C in parallel to extract data from different sources
+3. Lambda A connects to the PostgreSQL database and extracts customer data
+4. Lambda B calls the external API to fetch inventory data
+5. Lambda C reads and parses the CSV files from S3
+6. Once all extraction Lambdas complete, Step Functions triggers Lambda D
+7. Lambda D combines and transforms the data from all sources
+8. Transformed data is stored temporarily in S3
+9. Step Functions then triggers Lambda E
+10. Lambda E loads the processed data from S3 into Redshift
+11. Upon completion, Step Functions sends a notification about the pipeline status
 
-The data flow is as follows:
-1. Azure Data Factory extracts data daily from the POS system, Online Store database, and CRM API
-2. Raw data is stored in Azure Blob Storage
-3. Azure Data Lake Analytics processes and transforms the raw data
-4. Transformed data is loaded into Azure Synapse Analytics
-5. Power BI connects to Synapse Analytics to create reports and dashboards
+Access and Reporting:
+- Data analysts access Redshift to run queries and generate reports
+- A Tableau dashboard connects to Redshift for real-time visualizations
+- The IT team has full access to monitor and manage all AWS services
 
-The system also includes:
-- Azure Active Directory for user authentication and access control
-- Azure Monitor for system monitoring and alerts
-
-End users, including the Sales team, Marketing team, and Management, access reports and dashboards through Power BI.
+This pipeline ensures that the latest data from all sources is available in the Redshift data warehouse every morning for analysis and reporting.
     """
 
     print("Starting diagram generation...")

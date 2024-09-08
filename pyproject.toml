@@ -11,6 +11,7 @@ python = "^3.9"
 openai = "^1.43.0"
 python-dotenv = "^1.0.1"
 graphviz = "^0.20.3"
+pillow = "^10.4.0"
 
 
 [build-system]
@@ -20,3 +21,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 generate = "ai_architect.main:main"
 test = "test.visualiser:main"
+fix-images = "tools.image_resizer:main"
