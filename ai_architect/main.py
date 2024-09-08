@@ -13,24 +13,20 @@ def print_diagram_syntax(syntax):
 
     for section in sections:
         if section.startswith("DIAGRAM:"):
-            print("\033[1m\033[94m" + section + "\033[0m\n")  # Bold and blue
+            print("\033[1m\033[94m" + section + "\033[0m\n")
         elif section.startswith("CONNECTIONS:"):
-            print("\033[1m\033[92m" + section + "\033[0m")  # Bold and green
+            print("\033[1m\033[92m" + section + "\033[0m")
             connections = section.split("\n")[1:]  # Skip the "CONNECTIONS:" header
             for connection in connections:
                 print("  " + connection)
         else:
-            components = section.split("COMPONENT")[
-                1:
-            ]  # Split components, remove empty first element
+            components = section.split("COMPONENT")[1:]
             for component in components:
                 lines = component.strip().split("\n")
-                print(
-                    "\033[1m" + "COMPONENT" + lines[0] + "\033[0m"
-                )  # Bold component name
+                print("\033[1m" + "COMPONENT" + lines[0] + "\033[0m")
                 for line in lines[1:]:
                     print("  " + line)
-                print()  # Add a blank line between components
+                print()
 
     print("\n" + "=" * 50 + "\n")
 
@@ -104,7 +100,7 @@ End users, including the Sales team, Marketing team, and Management, access repo
             "Visualization complete. The diagram has been saved and should open automatically."
         )
     except Exception as e:
-        print(f"\033[91mAn error occurred: {e}\033[0m")  # Red error message
+        print(f"\033[91mAn error occurred: {e}\033[0m")
         import traceback
 
         print("Full traceback:")

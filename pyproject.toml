@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Connor (Cub) <connor@cubdigital.co.nz>"]
 readme = "README.md"
-packages = [{ include = "ai-solution-architect" }]
+packages = [{ include = "ai_architect" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -18,4 +18,5 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-generate = "ai-solution-architect.main:main"
+generate = "ai_architect.main:main"
+test = "test.visualiser:main"

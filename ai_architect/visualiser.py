@@ -14,6 +14,7 @@ class DiagramVisualiser:
         self.image_dir = "./images"
         self.available_images = self.get_available_images()
         self.color_map = {}
+        self.node_size = 1.5  # in inches, adjust as needed
 
     def get_available_images(self):
         return [f for f in os.listdir(self.image_dir) if f.endswith(".png")]
@@ -77,6 +78,9 @@ class DiagramVisualiser:
                 label=component["name"],
                 shape="none",
                 image=image_path,
+                imagescale="true",
+                width=str(self.node_size),
+                height=str(self.node_size),
             )
         else:
             color = self.get_color_for_type(component["type"])
@@ -87,6 +91,8 @@ class DiagramVisualiser:
                 style="filled",
                 fillcolor=color,
                 fontcolor="black",
+                width=str(self.node_size),
+                height=str(self.node_size),
             )
 
     def add_components(self):

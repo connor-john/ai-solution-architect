@@ -154,6 +154,3 @@ class DiagramGenerator:
         )
 
         return response.choices[0].message.content
-
-
-# The main.py file remains the same as in the previous version
