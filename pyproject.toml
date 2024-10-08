@@ -12,6 +12,7 @@ openai = "^1.43.0"
 python-dotenv = "^1.0.1"
 graphviz = "^0.20.3"
 pillow = "^10.4.0"
+pygame = "^2.6.1"
 
 
 [build-system]

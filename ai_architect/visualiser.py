@@ -1,104 +1,241 @@
-from graphviz import Digraph
+import pygame
+import math
 import os
-import hashlib
 
 
 class DiagramVisualiser:
-    def __init__(self, diagram_data):
-        self.diagram_data = diagram_data
-        self.dot = Digraph(comment="System Architecture")
-        self.dot.attr(rankdir="LR", size="12,8", dpi="300", compound="true")
-        self.image_dir = "./images"
-        self.available_images = self.get_available_images()
-        self.icon_size = 0.8  # in inches
+    def __init__(self, data, width=1600, height=900):
+        self.data = data
+        self.width = width
+        self.height = height
+        self.padding = 40
+        self.group_padding = 20
+        self.component_size = 100
+        self.font_size = 16
+        self.colors = {
+            "background": (240, 240, 240),
+            "group": (220, 220, 220),
+            "component": (200, 200, 200),
+            "text": (60, 60, 60),
+            "connection": (150, 150, 150),
+        }
 
-    def get_available_images(self):
-        return [f.lower() for f in os.listdir(self.image_dir) if f.endswith(".png")]
+        pygame.init()
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("Tech Diagram Visualizer")
+        self.font = pygame.font.Font(None, self.font_size)
 
-    def get_best_matching_image(self, component_name, component_type):
-        search_terms = f"{component_name} {component_type}".lower().split()
-        best_match = max(
-            self.available_images,
-            key=lambda img: sum(term in img.lower() for term in search_terms),
-            default=None,
-        )
-        return best_match
+        self.load_images()
+        self.calculate_layout()
 
-    def add_component_node(self, graph, component, group_name):
-        node_id = f"{group_name}_{component['name']}".replace(" ", "_")
-        image_name = self.get_best_matching_image(component["name"], component["type"])
+    def load_images(self):
+        self.images = {}
+        image_files = os.listdir("images")
+        for component in self.data["components"]:
+            image_found = False
+            component_name = component["name"].lower().replace(" ", "-")
+            component_type = component["type"].lower().replace(" ", "-")
 
-        if image_name:
-            image_path = os.path.join(self.image_dir, image_name)
-            graph.node(
-                node_id,
-                label="",
-                image=image_path,
-                shape="none",
-                imagescale="true",
-                width=str(self.icon_size),
-                height=str(self.icon_size),
+            # Try to find an exact match first
+            if f"{component_name}.png" in image_files:
+                self.load_image(component["name"], f"{component_name}.png")
+                image_found = True
+            elif f"{component_type}.png" in image_files:
+                self.load_image(component["name"], f"{component_type}.png")
+                image_found = True
+
+            # If no exact match, try partial matching
+            if not image_found:
+                for image_file in image_files:
+                    if (
+                        component_name in image_file.lower()
+                        or component_type in image_file.lower()
+                    ):
+                        self.load_image(component["name"], image_file)
+                        image_found = True
+                        break
+
+            # If still no match, try generic icons
+            if not image_found:
+                if "aws" in component_name or "aws" in component_type:
+                    self.load_image(component["name"], "aws.png")
+                elif "database" in component_type or "storage" in component_type:
+                    self.load_image(component["name"], "database.png")
+                elif "api" in component_type:
+                    self.load_image(component["name"], "api.png")
+                elif "role" in component_type or "user" in component_type:
+                    self.load_image(component["name"], "user.png")
+                else:
+                    print(f"Could not find image for {component['name']}")
+
+    def load_image(self, component_name, image_file):
+        try:
+            img = pygame.image.load(os.path.join("images", image_file))
+            self.images[component_name] = pygame.transform.scale(
+                img, (self.component_size, self.component_size)
             )
-            graph.node(
-                f"{node_id}_label", label=component["name"], shape="none", fontsize="10"
+        except pygame.error:
+            print(f"Error loading image for {component_name}")
+
+    def calculate_layout(self):
+        self.group_positions = {}
+        self.component_positions = {}
+
+        group_width = (self.width - self.padding * 2) / len(self.data["groups"])
+        for i, group in enumerate(self.data["groups"]):
+            self.group_positions[group["name"]] = (
+                self.padding + i * group_width,
+                self.padding,
+                group_width - self.group_padding,
+                self.height - self.padding * 2,
             )
-            graph.edge(node_id, f"{node_id}_label", style="invis")
-        else:
-            graph.node(
-                node_id,
-                label=component["name"],
-                shape="box",
-                style="filled",
-                fillcolor="lightgray",
-                fontcolor="black",
-            )
 
-        return node_id
+        for group in self.data["groups"]:
+            components = [
+                c for c in self.data["components"] if c["group"] == group["name"]
+            ]
+            rows = math.ceil(math.sqrt(len(components)))
+            cols = math.ceil(len(components) / rows)
+            cell_width = (group_width - self.group_padding) / cols
+            cell_height = (self.height - self.padding * 2 - self.group_padding) / rows
 
-    def add_components(self):
-        groups = {group["name"]: group for group in self.diagram_data["groups"]}
-        node_map = {}
-
-        for group_name, group in groups.items():
-            with self.dot.subgraph(name=f"cluster_{group_name}") as c:
-                c.attr(label=group["name"], style="dashed", color="gray")
-                group_components = [
-                    comp
-                    for comp in self.diagram_data["components"]
-                    if comp["group"] == group_name
-                ]
-                for component in group_components:
-                    node_id = self.add_component_node(c, component, group_name)
-                    node_map[component["name"]] = node_id
-
-        ungrouped = [
-            comp
-            for comp in self.diagram_data["components"]
-            if comp["group"] not in groups
-        ]
-        for component in ungrouped:
-            node_id = self.add_component_node(self.dot, component, "ungrouped")
-            node_map[component["name"]] = node_id
-
-        return node_map
-
-    def add_connections(self, node_map):
-        for connection in self.diagram_data["connections"]:
-            from_id = node_map.get(connection["from"])
-            to_id = node_map.get(connection["to"])
-
-            if from_id and to_id:
-                self.dot.edge(from_id, to_id, label=connection["label"])
-            else:
-                print(
-                    f"Warning: Could not create connection from '{connection['from']}' to '{connection['to']}'"
+            for i, component in enumerate(components):
+                row = i // cols
+                col = i % cols
+                self.component_positions[component["name"]] = (
+                    self.group_positions[group["name"]][0]
+                    + col * cell_width
+                    + cell_width / 2,
+                    self.group_positions[group["name"]][1]
+                    + row * cell_height
+                    + cell_height / 2
+                    + self.group_padding,
                 )
 
-    def generate(self):
-        node_map = self.add_components()
-        self.add_connections(node_map)
-        return self.dot
+    def draw(self):
+        self.screen.fill(self.colors["background"])
 
-    def render(self, filename="system_architecture"):
-        self.generate()
-        self.dot.render(filename, view=True, format="png", cleanup=True)
+        # Draw groups
+        for group, pos in self.group_positions.items():
+            pygame.draw.rect(self.screen, self.colors["group"], pos, border_radius=10)
+            text = self.font.render(group, True, self.colors["text"])
+            self.screen.blit(text, (pos[0] + 10, pos[1] + 10))
+
+        # Draw connections
+        for conn in self.data["connections"]:
+            start = self.get_connection_point(conn["from"])
+            end = self.get_connection_point(conn["to"])
+            if start and end:
+                self.draw_connection(start, end, conn["label"])
+            else:
+                print(
+                    f"Warning: Could not draw connection from {conn['from']} to {conn['to']}"
+                )
+
+        # Draw components
+        for component in self.data["components"]:
+            self.draw_component(component)
+
+    def get_connection_point(self, name):
+        if name in self.component_positions:
+            return self.component_positions[name]
+        elif name in self.group_positions:
+            group_pos = self.group_positions[name]
+            return (group_pos[0] + group_pos[2] / 2, group_pos[1] + group_pos[3] / 2)
+        return None
+
+    def draw_connection(self, start, end, label):
+        pygame.draw.line(self.screen, self.colors["connection"], start, end, 2)
+
+        # Draw arrow
+        angle = math.atan2(end[1] - start[1], end[0] - start[0])
+        arrow_size = 15
+        pygame.draw.polygon(
+            self.screen,
+            self.colors["connection"],
+            [
+                (
+                    end[0]
+                    - arrow_size * math.cos(angle)
+                    - arrow_size / 2 * math.sin(angle),
+                    end[1]
+                    - arrow_size * math.sin(angle)
+                    + arrow_size / 2 * math.cos(angle),
+                ),
+                (
+                    end[0]
+                    - arrow_size * math.cos(angle)
+                    + arrow_size / 2 * math.sin(angle),
+                    end[1]
+                    - arrow_size * math.sin(angle)
+                    - arrow_size / 2 * math.cos(angle),
+                ),
+                end,
+            ],
+        )
+
+        # Draw connection label
+        mid = ((start[0] + end[0]) / 2, (start[1] + end[1]) / 2)
+        label_bg = self.font.render(label, True, self.colors["background"])
+        label_fg = self.font.render(label, True, self.colors["text"])
+        label_rect = label_bg.get_rect(center=mid)
+        pygame.draw.rect(
+            self.screen,
+            self.colors["background"],
+            label_rect.inflate(10, 10),
+            border_radius=5,
+        )
+        self.screen.blit(label_fg, label_rect)
+
+    def draw_component(self, component):
+        pos = self.component_positions[component["name"]]
+        if component["name"] in self.images:
+            img = self.images[component["name"]]
+            self.screen.blit(
+                img, (pos[0] - img.get_width() / 2, pos[1] - img.get_height() / 2)
+            )
+        else:
+            pygame.draw.rect(
+                self.screen,
+                self.colors["component"],
+                (
+                    pos[0] - self.component_size / 2,
+                    pos[1] - self.component_size / 2,
+                    self.component_size,
+                    self.component_size,
+                ),
+                border_radius=10,
+            )
+
+        text = self.font.render(component["name"], True, self.colors["text"])
+        text_rect = text.get_rect(
+            center=(pos[0], pos[1] + self.component_size / 2 + 15)
+        )
+        pygame.draw.rect(
+            self.screen,
+            self.colors["background"],
+            text_rect.inflate(10, 10),
+            border_radius=5,
+        )
+        self.screen.blit(text, text_rect)
+
+    def run(self):
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            self.draw()
+            pygame.display.flip()
+
+        pygame.quit()
+
+    def save_image(self, filename="tech_diagram.png"):
+        self.draw()
+        pygame.image.save(self.screen, filename)
+        print(f"Diagram saved as {filename}")
+
+    def render(self, filename="tech_diagram.png"):
+        self.run()
+        self.save_image(filename)
