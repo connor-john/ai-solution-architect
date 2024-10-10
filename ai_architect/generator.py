@@ -52,7 +52,7 @@ class DiagramGenerator:
         Image Naming Guidelines:
         1. For specific cloud services, use "[provider]-[service].png" (e.g., "aws-lambda.png", "azure-sql-database.png").
         2. For generic services, use descriptive names (e.g., "database.png", "api.png", "server.png").
-        3. For user roles, use "user.png" or specific roles like "admin.png", "analyst.png".
+        3. For user roles always use "user.png".
         4. If unsure, use a generic term related to the component type.
 
         Example:

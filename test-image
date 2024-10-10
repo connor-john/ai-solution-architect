@@ -1,0 +1,97 @@
+// Tech Diagram
+digraph {
+	graph [fontcolor=black fontname=Arial fontsize=10 nodesep=0.3 ranksep=0.5 splines=ortho]
+	node [fontcolor=black fontname=Arial fontsize=10 shape=plaintext]
+	edge [fontcolor=black fontname=Arial fontsize=10 penwidth=1.0]
+	rankdir=LR
+	subgraph cluster_0 {
+		color=gray fontcolor=black fontname=Arial fontsize=10 label="Data Sources" penwidth=1 style=rounded
+		"group_invisible_Data Sources" [label="" height=0 shape=point style=invis width=0]
+		PostgreSQL [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\database.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">PostgreSQL</FONT></TD></TR>
+</TABLE>
+>]
+		"Supplier API" [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\api.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">Supplier API</FONT></TD></TR>
+</TABLE>
+>]
+		"S3 Bucket (CSV)" [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\aws-s3.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">S3 Bucket (CSV)</FONT></TD></TR>
+</TABLE>
+>]
+	}
+	subgraph cluster_1 {
+		color=gray fontcolor=black fontname=Arial fontsize=10 label=AWS penwidth=1 style=rounded
+		group_invisible_AWS [label="" height=0 shape=point style=invis width=0]
+		"Step Functions" [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\aws-step-functions.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">Step Functions</FONT></TD></TR>
+</TABLE>
+>]
+		"Lambda Functions" [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\aws-lambda.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">Lambda Functions</FONT></TD></TR>
+</TABLE>
+>]
+		"S3 Bucket (Staging)" [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\aws-s3.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">S3 Bucket (Staging)</FONT></TD></TR>
+</TABLE>
+>]
+		Redshift [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\aws-redshift.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">Redshift</FONT></TD></TR>
+</TABLE>
+>]
+		CloudWatch [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\aws.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">CloudWatch</FONT></TD></TR>
+</TABLE>
+>]
+	}
+	subgraph cluster_2 {
+		color=gray fontcolor=black fontname=Arial fontsize=10 label="User Groups" penwidth=1 style=rounded
+		"group_invisible_User Groups" [label="" height=0 shape=point style=invis width=0]
+		"Data Analyst" [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\user.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">Data Analyst</FONT></TD></TR>
+</TABLE>
+>]
+		"IT Team" [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
+    <TR><TD FIXEDSIZE="TRUE" WIDTH="80" HEIGHT="80"><IMG SRC="images\user.png" SCALE="TRUE"/></TD></TR>
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">IT Team</FONT></TD></TR>
+</TABLE>
+>]
+	}
+	subgraph cluster_3 {
+		color=gray fontcolor=black fontname=Arial fontsize=10 label="" penwidth=1 style=rounded
+		Tableau [label=<
+<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4">
+    <TR><TD ALIGN="CENTER"><FONT POINT-SIZE="10" FACE="Arial" COLOR="black">Tableau</FONT></TD></TR>
+</TABLE>
+>]
+	}
+	CloudWatch -> "Step Functions" [label=triggers]
+	"Step Functions" -> "Lambda Functions" [label=invokes]
+	"Lambda Functions" -> PostgreSQL [label="extracts data"]
+	"Lambda Functions" -> "Supplier API" [label="calls and processes"]
+	"Lambda Functions" -> "S3 Bucket (CSV)" [label="reads and processes"]
+	"Lambda Functions" -> Redshift [label="loads data"]
+	"Lambda Functions" -> "S3 Bucket (Staging)" [label="stores transformed data"]
+	"Data Analyst" -> Redshift [label="queries and generates reports"]
+	Tableau -> Redshift [label="connects for visualizations"]
+	"IT Team" -> group_invisible_AWS [label="monitors and manages"]
+}
