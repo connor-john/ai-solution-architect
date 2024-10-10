@@ -13,4 +13,8 @@ TODO:
 - [x] Update prompt to better examples  
 - [ ] Add message chaining to further refine the diagram
 - [ ] Add interactivity to the visualiser  
-- [ ] Explore finetuning   
+- [ ] Explore finetuning    
+
+Lucid Charts made a good attempt  
+
+![alt text](./lucid.png)
