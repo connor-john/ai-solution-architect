@@ -7,9 +7,10 @@ WIP
 TODO:
 
 - [x] Add basic syntax generator
-- [ ] Add basic visualiser for syntax  
-- [ ] Add rough matching for logos  
-- [ ] Add approved components and images into prompt for context aware generation  
-- [ ] Update prompt to better examples  
+- [x] Add basic visualiser for syntax  
+- [x] Add rough matching for logos  
+- [x] Add approved components and images into prompt for context aware generation  
+- [x] Update prompt to better examples  
+- [ ] Add message chaining to further refine the diagram
 - [ ] Add interactivity to the visualiser  
 - [ ] Explore finetuning   

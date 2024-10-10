@@ -49,6 +49,9 @@ class DiagramGenerator:
             ]
         }}
 
+        List of available images:
+            {os.listdir('images')}
+
         Image Naming Guidelines:
         1. For specific cloud services, use "[provider]-[service].png" (e.g., "aws-lambda.png", "azure-sql-database.png").
         2. For generic services, use descriptive names (e.g., "database.png", "api.png", "server.png").
